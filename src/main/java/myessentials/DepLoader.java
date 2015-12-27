@@ -25,11 +25,16 @@ public class DepLoader implements IFMLLoadingPlugin, IFMLCallHook {
 
     @Override
     public String[] getASMTransformerClass() {
-        return new String[]{
-                "myessentials.classtransformers.BlockFarmlandTransformer",
-                "myessentials.classtransformers.BlockDynamicLiquidTransformer",
-                "myessentials.classtransformers.BlockLiquidTransformer",
-                "myessentials.entities.sign.SignClassTransformer"
+        return new String[] {
+            "myessentials.classtransformers.AE2PlaceTransformer",
+            "myessentials.classtransformers.BlockFarmlandTransformer",
+            "myessentials.classtransformers.BlockFireTransformer",
+            "myessentials.classtransformers.BlockTaintFibersTransformer",
+            "myessentials.classtransformers.EntityFireballTransformer",
+            "myessentials.classtransformers.EntityThrowableTransformer",
+            "myessentials.classtransformers.SignClassTransformer",
+            "myessentials.classtransformers.BlockDynamicLiquidTransformer",
+            "myessentials.classtransformers.BlockLiquidTransformer"
         };
     }
 
