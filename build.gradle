@@ -60,6 +60,45 @@ minecraft {
     version = "${config.minecraft_version}-${config.forge_version}"
 
     replace "@VERSION@", "${project.version}"
+
+    // TODO Didn't work
+    //srgExtra "PK: org/spongepowered/asm myessentials/org/spongepowered/asm"
+}
+
+// Mixin Configs
+ext.mixinSrg = new File(project.buildDir, 'tmp/mixins/mixins.mec.srg')
+ext.mixinRefMap = new File(project.buildDir, "tmp/mixins/mixins.mec.refmap.json")
+
+// TODO Uncomment after we have a mixin with that actually requires refmap or make it add only if it exists
+//reobf.addExtraSrgFile project.mixinSrg
+
+compileJava {
+    options.compilerArgs += [
+            '-Xlint:-processing',
+            "-AoutSrgFile=${project.mixinSrg.canonicalPath}",
+            "-AoutRefMapFile=${project.mixinRefMap.canonicalPath}",
+            "-AreobfSrgFile=${project.file('build/srgs/mcp-srg.srg').canonicalPath}"
+    ]
+}
+
+afterEvaluate {
+    tasks.compileJava.options.compilerArgs += "-AreobfSrgFile=${tasks.reobf.srg}"
+}
+
+task copySrgs(type: Copy, dependsOn: 'genSrgs') {
+    from plugins.getPlugin("forge").delayedFile('{SRG_DIR}')
+
+    include '**/*.srg'
+    into 'build/srgs'
+}
+
+setupDecompWorkspace.dependsOn copySrgs
+setupDevWorkspace.dependsOn copySrgs
+compileJava.dependsOn copySrgs
+
+configurations {
+    shade
+    compile.extendsFrom shade
 }
 
 // Setup Deps
@@ -80,6 +119,11 @@ dependencies {
     // Other deps
     compile "org.beanshell:bsh:2.0b5"
     compile "com.esotericsoftware.reflectasm:reflectasm:${config.reflectasm_version}"
+
+    shade("org.spongepowered:mixin:0.4.4-SNAPSHOT"){
+        exclude module: 'launchwrapper'
+        exclude module: 'guava'
+    }
 }
 
 // Process Resources, injecting version numbers in
@@ -99,12 +143,22 @@ processResources {
 
 // Modify jar. Generate custom manifest
 jar {
+    from project.mixinRefMap
     classifier = 'universal'
     manifest {
         attributes (
             'FMLCorePlugin': 'myessentials.DepLoader',
-            'FMLCorePluginContainsFMLMod': 'true'
+            'FMLCorePluginContainsFMLMod': 'true',
+            'TweakClass': 'org.spongepowered.asm.launch.MixinTweaker',
+            'TweakOrder': '0'
         )
+    }
+
+    // TODO Change package name to avoid conflicts?
+    configurations.shade.each { dep ->
+        from(project.zipTree(dep)){
+            include 'org/spongepowered/asm', 'org/spongepowered/asm/**'
+        }
     }
 }
 

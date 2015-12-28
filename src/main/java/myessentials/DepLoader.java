@@ -4,6 +4,8 @@ import cpw.mods.fml.relauncher.FMLInjectionData;
 import cpw.mods.fml.relauncher.IFMLCallHook;
 import cpw.mods.fml.relauncher.IFMLLoadingPlugin;
 import net.minecraft.launchwrapper.LaunchClassLoader;
+import org.spongepowered.asm.launch.MixinBootstrap;
+import org.spongepowered.asm.mixin.MixinEnvironment;
 
 import java.io.File;
 import java.util.Map;
@@ -14,6 +16,14 @@ import java.util.Map;
  */
 @IFMLLoadingPlugin.SortingIndex(1001)
 public class DepLoader implements IFMLLoadingPlugin, IFMLCallHook {
+
+    public DepLoader(){
+        MixinBootstrap.init();
+
+        MixinEnvironment.getDefaultEnvironment()
+                .addConfiguration("mixins.mec.json");
+    }
+
     @Override
     public Void call() throws Exception {
         File mcDir = (File) FMLInjectionData.data()[6];
